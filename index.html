@@ -68,6 +68,28 @@ button{font-family:inherit!important;letter-spacing:.08em!important;font-weight:
 @media(max-width:600px){.topbar{padding:20px 6vw!important}.right-note{display:none}main{padding:28px 16px 52px!important}.content{padding:30px 22px!important;border-radius:22px!important}h1{font-size:clamp(42px,13vw,70px)!important}.bottom{padding:18px!important}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition:none!important}}
 </style>
+
+<style id="forsaken-christmas-season">
+:root{--xmas-red:#e33c55;--xmas-green:#3d9b72;--xmas-gold:#d7b56d}
+body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 8% 12%,rgba(38,130,91,.13),transparent 30%),radial-gradient(ellipse at 92% 12%,rgba(207,37,61,.16),transparent 32%);animation:festiveGlow 9s ease-in-out infinite alternate}
+@keyframes festiveGlow{0%{opacity:.55;filter:hue-rotate(-8deg)}100%{opacity:1;filter:hue-rotate(8deg)}}
+#christmas-lights{position:fixed;z-index:8;top:0;left:0;width:100%;height:13px;display:flex;justify-content:space-around;pointer-events:none;padding:0 8px;opacity:.9}
+.xmas-bulb{width:7px;height:10px;border-radius:50% 50% 45% 45%;background:var(--bulb);box-shadow:0 0 8px var(--bulb),0 0 17px var(--bulb);animation:bulbTwinkle var(--twinkle) ease-in-out infinite alternate;animation-delay:var(--delay)}
+@keyframes bulbTwinkle{from{opacity:.38;filter:brightness(.8)}to{opacity:1;filter:brightness(1.6)}}
+#christmas-snow{position:fixed;inset:0;z-index:7;overflow:hidden;pointer-events:none}
+.xmas-flake{position:absolute;top:-24px;left:var(--left);color:rgba(255,255,255,var(--alpha));font-size:var(--size);text-shadow:0 0 8px rgba(220,235,255,.4);animation:snowFall var(--duration) linear var(--delay) infinite;will-change:transform}
+@keyframes snowFall{0%{transform:translate3d(0,-5vh,0) rotate(0deg)}50%{transform:translate3d(var(--drift),52vh,0) rotate(180deg)}100%{transform:translate3d(calc(var(--drift)*-.45),110vh,0) rotate(360deg)}}
+.content{position:relative}
+.content:before{content:"✦  SEASON OF THE FORSAKEN  ✦";display:block;width:max-content;max-width:100%;margin:0 auto 18px;padding:7px 13px;border:1px solid rgba(215,181,109,.3);border-radius:999px;color:#d9bd82;background:rgba(92,35,39,.18);font-size:9px;font-weight:800;letter-spacing:.2em;animation:seasonPulse 3.5s ease-in-out infinite}
+@keyframes seasonPulse{0%,100%{box-shadow:0 0 0 rgba(215,181,109,0)}50%{box-shadow:0 0 22px rgba(215,181,109,.13)}}
+h1{text-shadow:0 0 24px rgba(227,60,85,.24),0 0 48px rgba(61,155,114,.12)!important}
+button{position:relative;overflow:hidden}
+button:after{content:"";position:absolute;inset:-1px;pointer-events:none;background:linear-gradient(110deg,transparent 25%,rgba(255,255,255,.13) 48%,transparent 70%);transform:translateX(-120%);animation:buttonShimmer 5s ease-in-out infinite}
+@keyframes buttonShimmer{0%,65%{transform:translateX(-120%)}90%,100%{transform:translateX(120%)}}
+.site-list button{border-color:rgba(215,181,109,.12)!important}
+.bottom span:last-child{color:#c9a66b}
+@media(prefers-reduced-motion:reduce){#christmas-snow,.xmas-bulb,.content:before,button:after,body:after{animation:none!important}.xmas-flake{display:none}}
+</style>
 </head>
 <body>
 <div class="backdrop"></div><div class="shade"></div><div class="vignette"></div>
@@ -107,6 +129,14 @@ document.getElementById('backBtn').addEventListener('click',()=>{sites.classList
 document.querySelectorAll('[data-url]').forEach(b=>b.addEventListener('click',()=>window.open(b.dataset.url,'_blank','noopener,noreferrer')));
 const holder=document.getElementById('embers');
 for(let i=0;i<48;i++){const e=document.createElement('i');e.className='ember';const s=2+Math.random()*4;e.style.left=Math.random()*100+'%';e.style.width=s+'px';e.style.height=s+'px';e.style.animationDuration=5+Math.random()*10+'s';e.style.animationDelay=-Math.random()*14+'s';e.style.setProperty('--drift',(Math.random()*150-75)+'px');holder.appendChild(e)}
+
+const festive=document.createElement('div');festive.id='christmas-snow';festive.setAttribute('aria-hidden','true');document.body.appendChild(festive);
+const lightline=document.createElement('div');lightline.id='christmas-lights';lightline.setAttribute('aria-hidden','true');document.body.appendChild(lightline);
+const bulbColors=['#d93650','#4aa77c','#d7b56d','#e9e9ee'];
+for(let i=0;i<34;i++){const b=document.createElement('i');b.className='xmas-bulb';b.style.setProperty('--bulb',bulbColors[i%bulbColors.length]);b.style.setProperty('--twinkle',(1.1+Math.random()*1.8)+'s');b.style.setProperty('--delay',(-Math.random()*3)+'s');lightline.appendChild(b)}
+const snowChars=['❄','✦','·'];
+for(let i=0;i<42;i++){const f=document.createElement('i');f.className='xmas-flake';f.textContent=snowChars[Math.floor(Math.random()*snowChars.length)];f.style.setProperty('--left',(Math.random()*100)+'%');f.style.setProperty('--size',(7+Math.random()*11)+'px');f.style.setProperty('--alpha',(0.25+Math.random()*.55));f.style.setProperty('--duration',(12+Math.random()*17)+'s');f.style.setProperty('--delay',(-Math.random()*26)+'s');f.style.setProperty('--drift',(Math.random()*100-50)+'px');festive.appendChild(f)}
+
 </script>
 </body>
 </html>
