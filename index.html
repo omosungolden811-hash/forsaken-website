@@ -173,20 +173,16 @@ main{padding:48px 18px 62px!important}
   <div class="tagline">One identity. Multiple destinations.</div>
   <div class="menu-intro"><span class="live-pip"></span><span>NETWORK ACCESS</span><i></i><span>SELECT A DESTINATION</span></div>
   <section id="sites" class="site-menu">
-   <a class="portal-card featured" data-url="https://app.beamse.pro/gen/Forsaken" href="https://app.beamse.pro/gen/Forsaken" target="_blank" rel="noopener noreferrer"><span class="portal-number">01</span><span class="portal-icon">⌘</span><span class="portal-copy"><strong>Main Dashboard</strong><small>Primary control centre</small></span><span class="portal-arrow">↗</span></a>
-   <a class="portal-card" data-url="https://app.beamers.si/u/Forsakenbeamzz" href="https://app.beamers.si/u/Forsakenbeamzz" target="_blank" rel="noopener noreferrer"><span class="portal-number">02</span><span class="portal-icon">◇</span><span class="portal-copy"><strong>Beamers Portal</strong><small>Beamers account access</small></span><span class="portal-arrow">↗</span></a>
-   <a class="portal-card" data-url="https://www.logged.tg/auth/forsakenbeamzz" href="https://www.logged.tg/auth/forsakenbeamzz" target="_blank" rel="noopener noreferrer"><span class="portal-number">03</span><span class="portal-icon">◈</span><span class="portal-copy"><strong>Logged Portal</strong><small>Secure service gateway</small></span><span class="portal-arrow">↗</span></a>
-   <a class="portal-card" data-url="https://app.beamse.vip/gen/Forsaken" href="https://app.beamse.vip/gen/Forsaken" target="_blank" rel="noopener noreferrer"><span class="portal-number">04</span><span class="portal-icon">✧</span><span class="portal-copy"><strong>Beamse VIP Portal</strong><small>VIP access gateway</small></span><span class="portal-arrow">↗</span></a>
+   <a class="portal-card featured" href="https://app.beamse.pro/gen/Forsaken" target="_blank" rel="noopener noreferrer"><span class="portal-number">01</span><span class="portal-icon">⌘</span><span class="portal-copy"><strong>Main Dashboard</strong><small>Primary control centre</small></span><span class="portal-arrow">↗</span></a>
+   <a class="portal-card" href="https://app.beamers.si/u/Forsakenbeamzz" target="_blank" rel="noopener noreferrer"><span class="portal-number">02</span><span class="portal-icon">◇</span><span class="portal-copy"><strong>Beamers Portal</strong><small>Beamers account access</small></span><span class="portal-arrow">↗</span></a>
+   <a class="portal-card" href="https://www.logged.tg/auth/forsakenbeamzz" target="_blank" rel="noopener noreferrer"><span class="portal-number">03</span><span class="portal-icon">◈</span><span class="portal-copy"><strong>Logged Portal</strong><small>Secure service gateway</small></span><span class="portal-arrow">↗</span></a>
+   <a class="portal-card" href="https://app.beamse.vip/gen/Forsaken" target="_blank" rel="noopener noreferrer"><span class="portal-number">04</span><span class="portal-icon">✧</span><span class="portal-copy"><strong>Beamse VIP Portal</strong><small>VIP access gateway</small></span><span class="portal-arrow">↗</span></a>
   </section>
   <div class="menu-foot"><span>✦ FORSAKEN NETWORK</span><span>ALL SYSTEMS READY <i class="live-pip"></i></span></div>
  </div>
 </main>
 <footer class="bottom"><span>© FORSAKEN</span><span>✦ THE RED INFERNO ✦</span></footer>
 <script>
-const welcome=document.getElementById('welcome'),sites=document.getElementById('sites');
-document.getElementById('continueBtn').addEventListener('click',()=>{welcome.classList.add('hidden');sites.classList.remove('hidden');sites.classList.add('screen')});
-document.getElementById('backBtn').addEventListener('click',()=>{sites.classList.add('hidden');welcome.classList.remove('hidden')});
-document.querySelectorAll('[data-url]').forEach(b=>b.addEventListener('click',()=>window.open(b.dataset.url,'_blank','noopener,noreferrer')));
 const holder=document.getElementById('embers');
 for(let i=0;i<48;i++){const e=document.createElement('i');e.className='ember';const s=2+Math.random()*4;e.style.left=Math.random()*100+'%';e.style.width=s+'px';e.style.height=s+'px';e.style.animationDuration=5+Math.random()*10+'s';e.style.animationDelay=-Math.random()*14+'s';e.style.setProperty('--drift',(Math.random()*150-75)+'px');holder.appendChild(e)}
 
