@@ -4,6 +4,7 @@ const PgSession=require('connect-pg-simple')(session);
 const {Pool}=require('pg');
 const crypto=require('crypto');
 const cors=require('cors');
+const path=require('path');
 const required=['DATABASE_URL','DISCORD_CLIENT_ID','DISCORD_CLIENT_SECRET','SESSION_SECRET','TOKEN_ENCRYPTION_KEY','OWNER_DISCORD_ID','WEB_ORIGIN'];
 for(const key of required) if(!process.env[key]) console.warn('Missing environment variable:',key);
 const app=express(),port=process.env.PORT||3000;
@@ -18,6 +19,10 @@ function encrypt(s){const iv=crypto.randomBytes(12),c=crypto.createCipheriv('aes
 function decrypt(s){const [iv,tag,data]=s.split(':'),d=crypto.createDecipheriv('aes-256-gcm',encKey(),iv?Buffer.from(iv,'hex'):Buffer.alloc(0));d.setAuthTag(Buffer.from(tag,'hex'));return Buffer.concat([d.update(Buffer.from(data,'hex')),d.final()]).toString('utf8')}
 app.set('trust proxy',1);app.use(cors({origin:process.env.WEB_ORIGIN,credentials:true}));app.use(express.json({limit:'16kb'}));
 app.use(session({store:process.env.DATABASE_URL?new PgSession({pool,tableName:'bot_manager_sessions',createTableIfMissing:true}):undefined,secret:process.env.SESSION_SECRET||'configure-session-secret',resave:false,saveUninitialized:false,cookie:{httpOnly:true,secure:true,sameSite:'none',maxAge:604800000}}));
+// Serve the actual control-center pages from this same service as the API.
+// This also makes the manager usable directly at the Render service URL.
+app.get('/',(req,res)=>res.sendFile(path.join(__dirname,'index.html')));
+app.get('/bot-manager.html',(req,res)=>res.sendFile(path.join(__dirname,'bot-manager.html')));
 const auth=(req,res,next)=>req.session.user?next():res.status(401).json({error:'Sign in with Discord first.'});
 const owner=req=>req.session.user?.id===process.env.OWNER_DISCORD_ID;
 async function discord(pathname,token){const r=await fetch('https://discord.com/api/v10'+pathname,{headers:{Authorization:'Bot '+token}}),d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.message||'Discord API request failed.');return d}
