@@ -21,7 +21,7 @@
 <footer class="foot"><span>© FORSAKEN NETWORK</span><span>SECURE BOT CONTROL</span></footer>
 </main>
 <script>
-const API='https://forsaken-bot-manager.onrender.com';
+const API='https://forsaken-bot-manager-b9vd.onrender.com';
 const $=id=>document.getElementById(id);
 let me=null;
 async function request(path,opts={}){const res=await fetch(API+path,{credentials:'include',...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});let data={};try{data=await res.json()}catch{}if(!res.ok)throw new Error(data.error||'Request failed');return data}
