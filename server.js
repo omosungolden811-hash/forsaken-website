@@ -5,6 +5,7 @@ const {Pool}=require('pg');
 const crypto=require('crypto');
 const cors=require('cors');
 const path=require('path');
+const fs=require('fs');
 const {Client,GatewayIntentBits,REST,Routes,SlashCommandBuilder,PermissionFlagsBits,EmbedBuilder}=require('discord.js');
 const required=['DATABASE_URL','DISCORD_CLIENT_ID','DISCORD_CLIENT_SECRET','SESSION_SECRET','TOKEN_ENCRYPTION_KEY','OWNER_DISCORD_ID','WEB_ORIGIN'];
 for(const key of required)if(!process.env[key])console.warn('Missing environment variable:',key);
