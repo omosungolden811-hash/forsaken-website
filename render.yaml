@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: forsaken-bot-manager
+    runtime: node
+    plan: starter
+    region: singapore
+    buildCommand: npm install
+    startCommand: npm start
+    disk:
+      name: forsaken-bot-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: WEB_ORIGIN
+        value: https://forsaken-website.onrender.com
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: OWNER_DISCORD_ID
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: TOKEN_ENCRYPTION_KEY
+        generateValue: true
