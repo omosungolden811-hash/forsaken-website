@@ -37,16 +37,27 @@ const welcomeCommand=new SlashCommandBuilder().setName('welcome').setDescription
  .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild);
 async function getWelcome(botId,guildId){const q=await pool.query('SELECT channel_id AS "channelId",message,enabled FROM bot_manager_welcome_settings WHERE bot_id=$1 AND guild_id=$2',[botId,guildId]);return q.rows[0]||{channelId:null,message:'Welcome {user} to {server}! You are member #{memberCount}.',enabled:true}}
 async function saveWelcome(botId,guildId,values){const old=await getWelcome(botId,guildId),next={...old,...values};await pool.query('INSERT INTO bot_manager_welcome_settings(bot_id,guild_id,channel_id,message,enabled,updated_at) VALUES($1,$2,$3,$4,$5,NOW()) ON CONFLICT(bot_id,guild_id) DO UPDATE SET channel_id=EXCLUDED.channel_id,message=EXCLUDED.message,enabled=EXCLUDED.enabled,updated_at=NOW()',[botId,guildId,next.channelId,next.message,next.enabled]);return next}
-async function startBot(row){
- if(runtimes.has(row.id))return;
- const token=decrypt(row.token_cipher),client=new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMembers]});
- const rt={client,status:'starting'};runtimes.set(row.id,rt);
- client.once('ready',async()=>{rt.status='online';try{const rest=new REST({version:'10'}).setToken(token);await rest.put(Routes.applicationCommands(client.application.id),{body:[welcomeCommand.toJSON()]});console.log('Welcome command registered for '+row.id)}catch(e){console.error('Command registration failed for '+row.id,e.message)}console.log('Connected manager bot '+row.id)});
- client.on('guildMemberAdd',async member=>{try{const s=await getWelcome(row.id,member.guild.id);if(!s.enabled)return;const channel=s.channelId?await member.guild.channels.fetch(s.channelId).catch(()=>null):member.guild.systemChannel;if(!channel?.isTextBased())return;const msg=String(s.message).replaceAll('{user}','<@'+member.id+'>').replaceAll('{server}',member.guild.name).replaceAll('{memberCount}',String(member.guild.memberCount));const embed=new EmbedBuilder().setColor(0x579cff).setDescription(msg.slice(0,4096));await channel.send({embeds:[embed],allowedMentions:{users:[member.id]}})}catch(e){console.error('Welcome event failed for '+row.id,e.message)}});
- client.on('interactionCreate',async i=>{if(!i.isChatInputCommand()||i.commandName!=='welcome')return;if(!i.inGuild())return i.reply({content:'This command only works in a server.',ephemeral:true});if(!i.memberPermissions?.has(PermissionFlagsBits.ManageGuild))return i.reply({content:'You need Manage Server permission.',ephemeral:true});try{const sub=i.options.getSubcommand();if(sub==='setup'){const ch=i.options.getChannel('channel',true);await saveWelcome(row.id,i.guildId,{channelId:ch.id,enabled:true});return i.reply({content:'Welcome messages enabled in '+ch.toString()+'.',ephemeral:true})}if(sub==='message'){await saveWelcome(row.id,i.guildId,{message:i.options.getString('text',true)});return i.reply({content:'Welcome message saved.',ephemeral:true})}await saveWelcome(row.id,i.guildId,{enabled:sub==='enable'});return i.reply({content:sub==='enable'?'Welcome messages enabled.':'Welcome messages disabled.',ephemeral:true})}catch(e){console.error('Welcome command error:',e.message);return i.reply({content:'Could not save welcome settings.',ephemeral:true}).catch(()=>{})}});
- client.on('error',e=>console.error('Discord client error '+row.id,e.message));
- try{await client.login(token)}catch(e){runtimes.delete(row.id);console.error('Discord login failed for manager bot '+row.id+':',e.message);throw new Error('Discord could not start this bot. Check the token and Server Members Intent.')}
+const { fork } = require('child_process');
+const runtimes = new Map();
+function startBot(row) {
+  if(runtimes.has(row.id)) return Promise.resolve();
+  const token=decrypt(row.token_cipher);
+  const dataDir=path.join('/tmp','forsaken-manager',row.id);
+  fs.mkdirSync(dataDir,{recursive:true});
+  const child=fork(path.join(__dirname,'forsaken-worker.js'),[],{env:{...process.env,DISCORD_TOKEN:token,BOT_MANAGER_BOT_ID:row.id,DATA_DIR:dataDir,PORT:'0'},stdio:['ignore','pipe','pipe','ipc']});
+  const runtime={child,status:'starting',guilds:[],commands:[]};runtimes.set(row.id,runtime);
+  child.stdout.on('data',b=>console.log('[bot '+row.id+'] '+b.toString().trim()));
+  child.stderr.on('data',b=>console.error('[bot '+row.id+'] '+b.toString().trim()));
+  child.on('message',msg=>{if(msg?.type==='snapshot'){runtime.guilds=msg.guilds||[];runtime.commands=msg.commands||[];runtime.status='online';}});
+  child.on('exit',code=>{runtime.status='offline';runtime.exitCode=code;});
+  return new Promise((resolve,reject)=>{
+    const timeout=setTimeout(()=>{child.kill();runtimes.delete(row.id);reject(new Error('Bot startup timed out. Check the token and enabled Discord intents.'));},60000);
+    const onMessage=msg=>{if(msg?.type==='snapshot'){clearTimeout(timeout);child.removeListener('message',onMessage);runtime.guilds=msg.guilds||[];runtime.commands=msg.commands||[];runtime.status='online';resolve();}};
+    child.on('message',onMessage);
+    child.once('exit',code=>{clearTimeout(timeout);child.removeListener('message',onMessage);if(runtime.status!=='online'){runtimes.delete(row.id);reject(new Error('Bot worker exited before becoming ready (code '+code+').'));}});
+  });
 }
+async function stopBot(id){const runtime=runtimes.get(id);if(runtime){runtimes.delete(id);runtime.child.kill('SIGTERM');}}
 async function stopBot(id){const rt=runtimes.get(id);if(rt){runtimes.delete(id);await rt.client.destroy()}}
 app.get('/health',async(req,res)=>{try{await pool.query('SELECT 1');res.json({ok:true,database:'connected',activeBots:runtimes.size})}catch(e){res.status(503).json({ok:false,database:'unavailable'})}});
 app.get('/auth/discord',(req,res)=>{const state=crypto.randomBytes(24).toString('hex');req.session.oauthState=state;const u=new URL('https://discord.com/oauth2/authorize');u.searchParams.set('client_id',process.env.DISCORD_CLIENT_ID||'');u.searchParams.set('redirect_uri',process.env.DISCORD_REDIRECT_URI||'https://forsaken-bot-manager-b9vd.onrender.com/auth/discord/callback');u.searchParams.set('response_type','code');u.searchParams.set('scope','identify');u.searchParams.set('state',state);res.redirect(u.toString())});
